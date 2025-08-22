@@ -44,7 +44,7 @@ jobs:
       shell: cmd
       run: |
         xcopy /y /v /s /e ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}\include ${{github.workspace}}\include
-        xcopy /y /v /s /e ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}\lib\libprotobuf.lib ${{github.workspace}}\lib
+        copy /y /v ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}\lib\libprotobuf.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}/vcpkg
         
     - name: Build project
