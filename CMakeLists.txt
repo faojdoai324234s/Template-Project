@@ -9,7 +9,13 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
-link_directories( ${PROJECT_SOURCE_DIR}/lib )
+if( MSVC )
+	add_compile_options(
+    $<$<CONFIG:>:/MT> #---------|
+    $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+    $<$<CONFIG:Release>:/MT> #--|
+  )
+endif()
 
 file( GLOB SRC_FILES
   ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -17,6 +23,8 @@ file( GLOB SRC_FILES
   ${PROJECT_SOURCE_DIR}/src/internal/widevine/*.h
   ${PROJECT_SOURCE_DIR}/src/internal/widevine/*.cc
 )
+
+link_directories( ${PROJECT_SOURCE_DIR}/lib )
 
 add_executable( ${library_name} ${SRC_FILES} )
 
