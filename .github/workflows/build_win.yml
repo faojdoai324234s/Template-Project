@@ -57,7 +57,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Windows-artifact
-        path: ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}aaaaaaaaaaaaaaaa
+        path: ${{github.workspace}}/build/Release/*.exe
         if-no-files-found: ignore
         include-hidden-files: true
         retention-days: 0
