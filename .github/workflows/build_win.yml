@@ -1,0 +1,63 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  triplet: x64-windows-custom
+  
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Visual Studio platform toolset
+      shell: cmd
+      run: |
+        "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\setup.exe" modify --quiet --norestart --includeRecommended --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --channelId VisualStudio.15.Release --add Microsoft.VisualStudio.Component.VC.v141.x86.x64
+        
+    - name: Install Protobuf
+      shell: cmd
+      run: |
+        git clone https://github.com/microsoft/vcpkg
+        cd vcpkg
+        git checkout 6245ce4 -- ports/protobuf
+        copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
+        vcpkg install protobuf protobuf:${{ env.triplet }}
+
+    - name: Generate source files
+      shell: cmd
+      run: |
+        mkdir ${{github.workspace}}\include
+        mkdir ${{github.workspace}}\lib
+        mkdir ${{github.workspace}}\src\internal
+        mkdir ${{github.workspace}}\src\internal\widevine
+        ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\tools\protobuf\protoc.exe --cpp_out=${{github.workspace}}\src\internal\widevine widevine_protocol.proto
+
+    - name: Copy Protobuf headers and libraries
+      shell: cmd
+      run: |
+        xcopy /y /v /s /e ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}\include ${{github.workspace}}\include
+        xcopy /y /v /s /e ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}\lib\libprotobuf.lib ${{github.workspace}}\lib
+        rmdir /s /q ${{github.workspace}}/vcpkg
+        
+    - name: Build project
+      shell: cmd
+      run: |
+        cmake -B build -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 17" -D CMAKE_GENERATOR_TOOLSET=v141
+        cmake --build build --config Release
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Windows-artifact
+        path: ${{github.workspace}}/vcpkg/installed/${{ env.triplet }}aaaaaaaaaaaaaaaa
+        if-no-files-found: ignore
+        include-hidden-files: true
+        retention-days: 0
