@@ -46,6 +46,22 @@ jobs:
         xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
         copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\libprotobuf.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
+
+    - name: Install Botan
+      shell: cmd
+      run: |
+        git clone https://github.com/microsoft/vcpkg
+        cd vcpkg
+        git checkout 3dd12b903561148b931de27f10f7f603db8e0171 -- ports/botan
+        copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
+        vcpkg install botan botan:${{ env.triplet }}
+
+    - name: Copy Botan headers and libraries
+      shell: cmd
+      run: |
+        xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
+        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\botan.lib ${{github.workspace}}\lib
+        rmdir /s /q ${{github.workspace}}\vcpkg
         
     - name: Build project
       shell: cmd
