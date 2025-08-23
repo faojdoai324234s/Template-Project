@@ -84,8 +84,6 @@ jobs:
         git checkout e038a48d08b9c3768168eec11a741d1ddc69ee8a
 
     - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        toolset: 14.16
     - name: Configure FFmpeg
       working-directory: ${{github.workspace}}/FFmpeg
       shell: msys2 {0}
