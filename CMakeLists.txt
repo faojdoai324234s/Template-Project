@@ -40,7 +40,7 @@ elseif( APPLE )
   )
 elseif( WIN32 )
   set( LINK_LIBS
-  libavcodec.a libavformat.a libavutil.a libswresample.a
+  libavcodec libavformat libavutil libswresample
   libprotobuf.lib
   botan.lib
   # Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
