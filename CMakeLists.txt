@@ -42,6 +42,7 @@ elseif( WIN32 )
   set( LINK_LIBS
   # avcodec.lib avdevice.lib avfilter.lib avformat.lib avutil.lib postproc.lib swresample.lib swscale.lib
   libprotobuf.lib
+  botan.lib
   # Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
   )
 endif()
