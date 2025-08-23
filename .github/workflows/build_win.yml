@@ -17,6 +17,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: >-
+          make
+          yasm
+        path-type: inherit
+        update: true
+
+    - name: Setup MSYS2
+      shell: msys2 {0}
+      run: mv /usr/bin/link.exe /usr/bin/link.exe.bak
+      
     - name: Install Visual Studio platform toolset
       shell: cmd
       run: |
@@ -62,6 +74,70 @@ jobs:
         xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
         copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\botan.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
+
+    - name: Clone FFmpeg
+      shell: cmd
+      run: |
+        mkdir upload
+        git clone https://github.com/faojdoai324234s/FFmpeg.git
+        cd FFmpeg
+        git checkout e038a48d08b9c3768168eec11a741d1ddc69ee8a
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        toolset: 14.16
+    - name: Configure FFmpeg
+      working-directory: ${{github.workspace}}/FFmpeg
+      shell: msys2 {0}
+      env:
+        UPLOAD_FOLDER: ${{github.workspace}}\upload
+      run: |
+        CC=cl
+        ./configure \
+        --arch=x86_64 \
+        --target-os=win64 \
+        --toolchain=msvc \
+        --prefix=$UPLOAD_FOLDER \
+        --enable-gpl \
+        --enable-static \
+        --disable-shared \
+        --disable-all \
+        --disable-everything \
+        --disable-doc \
+        --enable-avcodec \
+        --enable-avformat \
+        --enable-swresample \
+        --enable-w32threads \
+        --enable-error-resilience \
+        --enable-decoder=h264,hevc,mpeg2video,vc1,vvc,vp8,vp9,av1,aac,ac3,dca,eac3,flac,mp3,opus,truehd,vorbis \
+        --enable-demuxer=h264,hevc,mpeg2video,vc1,vvc,vp8,vp9,av1,aac,ac3,dca,eac3,flac,mp3,opus,truehd,vorbis \
+        --enable-parser=h264,hevc,mpeg2video,vc1,vvc,vp8,vp9,av1,aac,ac3,dca,eac3,flac,mp3,opus,truehd,vorbis \
+        --disable-decoder=libdav1d \
+        --enable-d3d11va \
+        --enable-d3d12va \
+        --enable-dxva2 \
+        --disable-iconv \
+        --disable-schannel \
+        --disable-zlib \
+        --disable-debug
+
+    - name: Build FFmpeg
+      working-directory: ${{github.workspace}}/FFmpeg
+      shell: msys2 {0}
+      run: make
+
+    - name: Install FFmpeg
+      working-directory: ${{github.workspace}}/FFmpeg
+      shell: msys2 {0}
+      run: make install
+
+    - name: Copy FFmpeg headers and libraries
+      shell: cmd
+      run: |
+        xcopy /y /v /s /e ${{github.workspace}}\upload\include ${{github.workspace}}\include
+        copy /y /v ${{github.workspace}}\upload\lib\*.a ${{github.workspace}}\lib
+        rmdir /s /q ${{github.workspace}}\FFmpeg
+        rmdir /s /q ${{github.workspace}}\upload
         
     - name: Build project
       shell: cmd
