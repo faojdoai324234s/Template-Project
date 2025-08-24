@@ -9,7 +9,6 @@ on:
       - main
 
 env:
-  ffmpeg-triplet: ffmpeg-x64-windows-custom
   triplet: x64-windows-custom
   
 jobs:
@@ -18,11 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Install Visual Studio platform toolset
-      shell: cmd
-      run: |
-        "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\setup.exe" modify --quiet --norestart --includeRecommended --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --channelId VisualStudio.15.Release --add Microsoft.VisualStudio.Component.VC.v141.x86.x64
-        
     - name: Install Protobuf
       shell: cmd
       run: |
@@ -69,21 +63,21 @@ jobs:
       run: |
         git clone https://github.com/microsoft/vcpkg
         cd vcpkg
-        copy /y /v ${{github.workspace}}\${{ env.ffmpeg-triplet }}.cmake triplets
+        copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
         copy /y /v ${{github.workspace}}\portfile.cmake ports\ffmpeg
-        vcpkg install ffmpeg[avcodec,avformat,fdk-aac,nonfree,swresample]:${{ env.ffmpeg-triplet }}
+        vcpkg install ffmpeg[avcodec,avformat,fdk-aac,nonfree,swresample]:${{ env.triplet }}
         
     - name: Copy FFmpeg headers and libraries
       shell: cmd
       run: |
-        xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.ffmpeg-triplet }}\include ${{github.workspace}}\include
-        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.ffmpeg-triplet }}\lib\*.lib ${{github.workspace}}\lib
+        xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
+        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\*.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
         
     - name: Build project
       shell: cmd
       run: |
-        cmake -B build -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 17" -D CMAKE_GENERATOR_TOOLSET=v141
+        cmake -B build -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 17" -D CMAKE_GENERATOR_TOOLSET=v142
         cmake --build build --config Release
         
     - name: Upload artifact
