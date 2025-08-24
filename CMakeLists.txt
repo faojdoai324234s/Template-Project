@@ -8,6 +8,8 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
+set( CMAKE_AUTOMOC ON )
+set( CMAKE_AUTORCC ON )
 
 if( MSVC )
 	add_compile_options(
@@ -16,6 +18,14 @@ if( MSVC )
     $<$<CONFIG:Release>:/MT> #--|
   )
 endif()
+
+set( OPENSSL_USE_STATIC_LIBS TRUE )
+if( MSVC )
+	set( OPENSSL_MSVC_STATIC_RT TRUE )
+endif()
+
+find_package( Qt5 REQUIRED COMPONENTS Core Gui Network Widgets )
+find_package( OpenSSL REQUIRED )
 
 file( GLOB SRC_FILES
   ${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -40,13 +50,15 @@ elseif( APPLE )
   )
 elseif( WIN32 )
   set( LINK_LIBS
+  Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets
+  OpenSSL::Crypto OpenSSL::SSL
   # avcodec.lib avdevice.lib avfilter.lib avformat.lib avutil.lib postproc.lib swresample.lib swscale.lib
   libprotobuf.lib
   botan.lib
-  # Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
+  Ws2_32.lib Crypt32.lib # Wldap32.lib Normaliz.lib
   )
 endif()
 
-target_link_libraries( ${library_name} PRIVATE ${LINK_LIBS} ) # Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets
+target_link_libraries( ${library_name} PRIVATE ${LINK_LIBS} )
 
 target_include_directories( ${library_name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include )
