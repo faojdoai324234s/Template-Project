@@ -43,6 +43,8 @@ elseif( WIN32 )
   avcodec.lib avdevice.lib avfilter.lib avformat.lib avutil.lib swresample.lib swscale.lib fdk-aac.lib
   libprotobuf.lib
   botan.lib
+  Bcrypt.lib # Needed for avutil
+  Ws2_32.lib # Needed for avformat
   # Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
   )
 endif()
