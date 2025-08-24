@@ -9,6 +9,7 @@ on:
       - main
 
 env:
+  ffmpeg-triplet: ffmpeg-x64-windows-custom
   triplet: x64-windows-custom
   
 jobs:
@@ -31,7 +32,7 @@ jobs:
         copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
         vcpkg install protobuf protobuf:${{ env.triplet }}
 
-    - name: Generate source files
+    - name: Generate source files from proto-file
       shell: cmd
       run: |
         mkdir ${{github.workspace}}\include
@@ -61,6 +62,22 @@ jobs:
       run: |
         xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
         copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\botan.lib ${{github.workspace}}\lib
+        rmdir /s /q ${{github.workspace}}\vcpkg
+        
+    - name: Install FFmpeg
+      shell: cmd
+      run: |
+        git clone https://github.com/microsoft/vcpkg
+        cd vcpkg
+        copy /y /v ${{github.workspace}}\${{ env.ffmpeg-triplet }}.cmake triplets
+        copy /y /v ${{github.workspace}}\portfile.cmake ports\ffmpeg
+        vcpkg install ffmpeg[avcodec,avformat,fdk-aac,nonfree,swresample]:${{ env.ffmpeg-triplet }}
+        
+    - name: Copy FFmpeg headers and libraries
+      shell: cmd
+      run: |
+        xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.ffmpeg-triplet }}\include ${{github.workspace}}\include
+        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.ffmpeg-triplet }}\lib\*.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
         
     - name: Build project
