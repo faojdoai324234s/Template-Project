@@ -20,8 +20,6 @@ endif()
 file( GLOB SRC_FILES
   ${PROJECT_SOURCE_DIR}/src/*.cpp
   ${PROJECT_SOURCE_DIR}/src/*.h
-  ${PROJECT_SOURCE_DIR}/src/internal/widevine/*.h
-  ${PROJECT_SOURCE_DIR}/src/internal/widevine/*.cc
 )
 
 link_directories( ${PROJECT_SOURCE_DIR}/lib )
@@ -41,11 +39,7 @@ elseif( APPLE )
 elseif( WIN32 )
   set( LINK_LIBS
   avcodec.lib avdevice.lib avfilter.lib avformat.lib avutil.lib swresample.lib swscale.lib fdk-aac.lib
-  libprotobuf.lib
-  botan.lib
-  Bcrypt.lib # Needed for avutil
-  Ws2_32.lib # Needed for avformat
-  # Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
+  Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
   )
 endif()
 
