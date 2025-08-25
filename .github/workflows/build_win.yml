@@ -30,6 +30,8 @@ jobs:
     - name: Copy FFmpeg headers and libraries
       shell: cmd
       run: |
+        mkdir include
+        mkdir lib
         xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
         copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\*.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
