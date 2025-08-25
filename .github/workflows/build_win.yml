@@ -205,9 +205,9 @@ jobs:
     - name: Copy Qt ${{ env.Qt_patch_version }} files
       shell: cmd
       run: |
-        xcopy /y /v /s /e C:/Qt/Qt-${{ env.Qt_patch_version }} C:/Qt
-        rmdir /s /q C:/Qt/Qt-${{ env.Qt_patch_version }}
-        rmdir /s /q C:/qt-everywhere-src-${{ env.Qt_patch_version }}
+        xcopy /y /v /s /e C:\Qt\Qt-${{ env.Qt_patch_version }} C:\Qt
+        rmdir /s /q C:\Qt\Qt-${{ env.Qt_patch_version }}
+        rmdir /s /q C:\qt-everywhere-src-${{ env.Qt_patch_version }}
         
     - name: Build project
       shell: cmd
