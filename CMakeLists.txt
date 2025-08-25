@@ -39,7 +39,7 @@ elseif( APPLE )
 elseif( WIN32 )
   set( LINK_LIBS
   avcodec.lib avdevice.lib avfilter.lib avformat.lib avutil.lib swresample.lib swscale.lib fdk-aac.lib
-  Ws2_32.lib Crypt32.lib Wldap32.lib Normaliz.lib
+  Ws2_32.lib Crypt32.lib Bcrypt.lib Wldap32.lib Normaliz.lib
   )
 endif()
 
