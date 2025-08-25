@@ -1,7 +1,5 @@
-#include <botan/block_cipher.h>
 #include <cstdio>
 #include <iostream>
-#include "internal/widevine/widevine_protocol.pb.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -9,8 +7,6 @@ extern "C" {
 }
 
 int main() {
-  std::unique_ptr<Botan::BlockCipher> sessionKeyBlock = Botan::BlockCipher::create_or_throw("AES-128");
-  SignedLicenseRequest signedLicenseRequest = SignedLicenseRequest();
   AVFormatContext* pFormatContext = avformat_alloc_context();
   if (!pFormatContext) {
     return -1;
