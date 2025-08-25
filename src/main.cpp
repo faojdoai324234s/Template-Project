@@ -1,12 +1,15 @@
-#include <botan/block_cipher.h>
 #include <iostream>
-#include <QtCore/qdebug.h>
-#include "internal/widevine/widevine_protocol.pb.h"
+
+extern "C" {
+#include <libavformat/avformat.h>
+}
 
 int main() {
-  std::unique_ptr<Botan::BlockCipher> sessionKeyBlock = Botan::BlockCipher::create_or_throw("AES-128");
-  SignedLicenseRequest signedLicenseRequest = SignedLicenseRequest();
+  AVFormatContext* av_format_ctx = NULL;
+  if (!(av_format_ctx = avformat_alloc_context())) {
+      return -1;
+    }
+  avformat_free_context(av_format_ctx);
   std::cout << "Hello, World!" << std::endl;
-  qDebug() << "Hello Qt!\n";
   return 0;
 }

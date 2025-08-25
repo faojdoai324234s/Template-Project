@@ -9,10 +9,6 @@ on:
       - main
 
 env:
-  Qt_minor_version: 5.15
-  Qt_patch_version: 5.15.17
-  openssl_location: C:\Program Files\OpenSSL
-  sevenzip_location: C:\Program Files\7-Zip
   triplet: x64-windows-custom
   
 jobs:
@@ -21,199 +17,33 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Install Visual Studio platform toolset
-      shell: cmd
-      run: |
-        "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\setup.exe" modify --quiet --norestart --includeRecommended --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --channelId VisualStudio.15.Release --add Microsoft.VisualStudio.Component.VC.v141.x86.x64
-        
-    - name: Install Protobuf
+    
+    - name: Install FFmpeg
       shell: cmd
       run: |
         git clone https://github.com/microsoft/vcpkg
         cd vcpkg
-        git checkout 6245ce4 -- ports/protobuf
         copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
-        vcpkg install protobuf protobuf:${{ env.triplet }}
+        vcpkg install ffmpeg[core,avcodec,avdevice,avformat,swresample]:${{ env.triplet }}
 
-    - name: Generate source files
+    - name: Copy FFmpeg headers and libraries
       shell: cmd
       run: |
-        mkdir ${{github.workspace}}\include
-        mkdir ${{github.workspace}}\lib
-        mkdir ${{github.workspace}}\src\internal
-        mkdir ${{github.workspace}}\src\internal\widevine
-        ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\tools\protobuf\protoc.exe --cpp_out=${{github.workspace}}\src\internal\widevine widevine_protocol.proto
-
-    - name: Copy Protobuf headers and libraries
-      shell: cmd
-      run: |
+        mkdir include
+        mkdir lib
         xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
-        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\libprotobuf.lib ${{github.workspace}}\lib
+        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\*.lib ${{github.workspace}}\lib
         rmdir /s /q ${{github.workspace}}\vcpkg
-
-    - name: Install Botan
-      shell: cmd
-      run: |
-        git clone https://github.com/microsoft/vcpkg
-        cd vcpkg
-        git checkout 3dd12b903561148b931de27f10f7f603db8e0171 -- ports/botan
-        copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
-        vcpkg install botan botan:${{ env.triplet }}
-
-    - name: Copy Botan headers and libraries
-      shell: cmd
-      run: |
-        xcopy /y /v /s /e ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\include ${{github.workspace}}\include
-        copy /y /v ${{github.workspace}}\vcpkg\installed\${{ env.triplet }}\lib\botan.lib ${{github.workspace}}\lib
-        rmdir /s /q ${{github.workspace}}\vcpkg
-
-    - name: Download Qt ${{ env.Qt_patch_version }}
-      shell: pwsh
-      run: |
-        $AllProtocols = [System.Net.SecurityProtocolType]'Tls,Tls11,Tls12'
-        [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
-        
-        $ProgressPreference = 'SilentlyContinue'
-        $qt_archive_file = "C:\" + "qt-everywhere-opensource-src-${{ env.Qt_patch_version }}" + ".tar.xz"
-        Invoke-WebRequest -Uri https://download.qt.io/archive/qt/${{ env.Qt_minor_version }}/${{ env.Qt_patch_version }}/single/qt-everywhere-opensource-src-${{ env.Qt_patch_version }}.tar.xz -OutFile $qt_archive_file
-        
-    - name: Extract Qt ${{ env.Qt_patch_version }}
-      working-directory: ${{ env.sevenzip_location }}
-      shell: cmd
-      run: |
-        7z x C:\qt-everywhere-opensource-src-${{ env.Qt_patch_version }}.tar.xz -oC:\
-        7z x C:\qt-everywhere-opensource-src-${{ env.Qt_patch_version }}.tar -oC:\
-        del C:\qt-everywhere-opensource-src-${{ env.Qt_patch_version }}.tar.xz
-        del C:\qt-everywhere-opensource-src-${{ env.Qt_patch_version }}.tar
-        
-    - name: Install Ninja
-      shell: pwsh
-      run: |
-        choco install ninja
-
-    - uses: ilammy/msvc-dev-cmd@v1
-      with:
-        toolset: 14.16
-    - name: Configure Qt ${{ env.Qt_patch_version }}
-      working-directory: C:/qt-everywhere-src-${{ env.Qt_patch_version }}
-      shell: cmd
-      run: |
-        configure.bat ^
-        -opensource ^
-        -confirm-license ^
-        -debug-and-release ^
-        -static ^
-        -static-runtime ^
-        -platform win32-msvc ^
-        -mp ^
-        -nomake examples ^
-        -nomake tests ^
-        -no-compile-examples ^
-        -no-dbus ^
-        -no-accessibility ^
-        -qt-doubleconversion ^
-        -no-icu ^
-        -openssl-linked OPENSSL_LIBS="-lUser32 -lAdvapi32 -lGdi32 -lCrypt32 -lWs2_32" OPENSSL_PREFIX="${{ env.openssl_location }}" OPENSSL_LIBS_RELEASE="-llibcrypto64MT -llibssl64MT" OPENSSL_LIBS_DEBUG="-llibcrypto64MTd -llibssl64MTd" ^
-        -I "${{ env.openssl_location }}\include" ^
-        -L "${{ env.openssl_location }}\lib\VC\static" ^
-        -L "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib" ^
-        -no-schannel ^
-        -no-securetransport ^
-        -no-cups ^
-        -no-fontconfig ^
-        -no-freetype ^
-        -no-harfbuzz ^
-        -no-gtk ^
-        -opengl desktop ^
-        -no-direct2d ^
-        -no-eglfs ^
-        -no-ico ^
-        -no-sql-db2 ^
-        -no-sql-ibase ^
-        -no-sql-mysql ^
-        -no-sql-oci ^
-        -no-sql-odbc ^
-        -no-sql-psql ^
-        -no-sql-sqlite ^
-        -no-sql-sqlite2 ^
-        -no-sql-tds ^
-        -no-tiff ^
-        -no-webp ^
-        -no-feature-sqlmodel ^
-        -no-feature-testlib_selfcover ^
-        -no-feature-textmarkdownreader ^
-        -no-feature-textmarkdownwriter ^
-        -no-feature-textodfwriter ^
-        -no-feature-printer ^
-        -skip qt3d ^
-        -skip qtactiveqt ^
-        -skip qtandroidextras ^
-        -skip qtcanvas3d ^
-        -skip qtcharts ^
-        -skip qtconnectivity ^
-        -skip qtdatavis3d ^
-        -skip qtdeclarative ^
-        -skip qtdoc ^
-        -skip qtfeedback ^
-        -skip qtgamepad ^
-        -skip qtgraphicaleffects ^
-        -skip qtlocation ^
-        -skip qtlottie ^
-        -skip qtmacextras ^
-        -skip qtnetworkauth ^
-        -skip qtpim ^
-        -skip qtpurchasing ^
-        -skip qtqa ^
-        -skip qtquick3d ^
-        -skip qtquickcontrols ^
-        -skip qtquickcontrols2 ^
-        -skip qtquicktimeline ^
-        -skip qtremoteobjects ^
-        -skip qtrepotools ^
-        -skip qtscript ^
-        -skip qtscxml ^
-        -skip qtsensors ^
-        -skip qtserialbus ^
-        -skip qtserialport ^
-        -skip qtspeech ^
-        -skip qtsystems ^
-        -skip qttools ^
-        -skip qttranslations ^
-        -skip qtvirtualkeyboard ^
-        -skip qtwayland ^
-        -skip qtwebchannel ^
-        -skip qtwebengine ^
-        -skip qtwebglplugin ^
-        -skip qtwebsockets ^
-        -skip qtwebview ^
-        -skip qtwinextras ^
-        -skip qtx11extras ^
-        -skip qtxmlpatterns
-
-    - name: Build Qt ${{ env.Qt_patch_version }}
-      working-directory: C:/qt-everywhere-src-${{ env.Qt_patch_version }}
-      shell: pwsh
-      run: |
-        nmake
-        
-    - name: Install Qt ${{ env.Qt_patch_version }}
-      working-directory: C:/qt-everywhere-src-${{ env.Qt_patch_version }}
-      shell: pwsh
-      run: |
-        nmake install
-
-    - name: Copy Qt ${{ env.Qt_patch_version }} files
-      shell: cmd
-      run: |
-        xcopy /y /v /s /e C:\Qt\Qt-${{ env.Qt_patch_version }} C:\Qt
-        rmdir /s /q C:\Qt\Qt-${{ env.Qt_patch_version }}
-        rmdir /s /q C:\qt-everywhere-src-${{ env.Qt_patch_version }}
         
     - name: Build project
       shell: cmd
       run: |
-        cmake -B build -D Qt5_DIR="C:/Qt/lib/cmake/Qt5" -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 17" -D CMAKE_GENERATOR_TOOLSET=v141
+        cmake -B build -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 17" -D CMAKE_GENERATOR_TOOLSET=v142
         cmake --build build --config Release
+        
+    - name: Run project
+      shell: cmd
+      run: ${{github.workspace}}/build/Release/Template-Project.exe
         
     - name: Upload artifact
       uses: actions/upload-artifact@v4
