@@ -24,7 +24,7 @@ jobs:
         git clone https://github.com/microsoft/vcpkg
         cd vcpkg
         copy /y /v ${{github.workspace}}\${{ env.triplet }}.cmake triplets
-        vcpkg install ffmpeg[core]:${{ env.triplet }}
+        vcpkg install ffmpeg[core,avformat]:${{ env.triplet }}
 
     - name: Copy FFmpeg headers and libraries
       shell: cmd
