@@ -1,0 +1,23 @@
+name: Linux Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Project
+      run: |
+        cmake -B build -D CMAKE_BUILD_TYPE=Release
+        cmake --build build --config Release
+        
+    - name: Run library
+      run: ./build/Template-Project
